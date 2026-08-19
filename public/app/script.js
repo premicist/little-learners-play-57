@@ -1011,6 +1011,68 @@ function buildTraceScreen(content, config) {
   content.appendChild(panel);
 }
 
+/** Connect-the-dots writing panel: tap each blinking dot to build the shape. */
+function buildDotTracePanel(panel, content, config, item, guideText) {
+  const state = appState.game;
+  panel.appendChild(el("div", "prompt", "🔵 Tap the blinking dot to build <b>" + esc(guideText) + "</b>"));
+
+  const box = feedbackBox();
+  const counter = el("div", "dot-counter", "");
+  let board = null;
+
+  const setCount = (done, total) => {
+    counter.textContent = "Dots: " + done + " / " + total;
+  };
+
+  const makeBoard = () => {
+    if (board) board.stop();
+    board = createDotTraceBoard(guideText, {
+      onStep: (done, total) => setCount(done, total),
+      onMiss: () => showFeedback(box, "Tap the blinking dot! 🔵", true),
+      onComplete: () => {
+        setCount(board.total, board.total);
+        celebrateCorrect(box, praise());
+        if (config.speakOf) config.speakOf(item);
+      },
+    });
+    setCount(0, board.total);
+    return board.element;
+  };
+
+  const holder = el("div", "");
+  holder.appendChild(makeBoard());
+  panel.appendChild(holder);
+  panel.appendChild(counter);
+
+  const row = el("div", "row");
+  row.appendChild(speakerButton("Listen", () => config.speakOf && config.speakOf(item)));
+
+  const restart = el("button", "btn blue", "🔁 Start Over");
+  restart.setAttribute("aria-label", "Start the dots again");
+  restart.addEventListener("click", () => {
+    holder.innerHTML = "";
+    holder.appendChild(makeBoard());
+    showFeedback(box, "");
+  });
+  row.appendChild(restart);
+
+  const nextBtn = el("button", "btn", "➡️ Next");
+  nextBtn.setAttribute("aria-label", "Next item to build");
+  nextBtn.addEventListener("click", () => {
+    if (board) board.stop();
+    state.traceIndex = (state.traceIndex + 1) % config.items.length;
+    config.rerender();
+  });
+  row.appendChild(nextBtn);
+
+  panel.appendChild(row);
+  panel.appendChild(box);
+  panel.appendChild(progressBar(state.traceIndex + 1, config.items.length));
+  content.appendChild(panel);
+}
+
+
+
 /** Standard "say it out loud" screen. */
 function buildSpeakScreen(content, config) {
   // config: { display, caption, lang, speakOf, onNext }
