@@ -367,6 +367,17 @@ function playCelebrateSound() {
   [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.12, 0.3));
 }
 
+/** Short bright blip used when a dot is connected. */
+function playPopSound(step) {
+  const base = 440 + ((step || 0) % 8) * 40;
+  tone(base, 0, 0.1, 0.14);
+}
+
+/* Font stack used for offscreen glyph rendering (matches the CSS font). */
+const FONT_STACK =
+  '"Segoe UI","Noto Sans","Noto Sans Devanagari","Nirmala UI","Mangal",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif';
+
+
 /* ---------------------------------------------------------
    5. SPEECH (Web Speech API) — safe if unavailable
    --------------------------------------------------------- */
