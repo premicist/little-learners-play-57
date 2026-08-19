@@ -935,16 +935,36 @@ function buildTraceScreen(content, config) {
   // config: { items, guideOf, speakOf, indexKey }
   const state = appState.game;
   if (typeof state.traceIndex !== "number") state.traceIndex = 0;
+  if (!state.traceStyle) state.traceStyle = "dots";
   const item = config.items[state.traceIndex % config.items.length];
   const guideText = config.guideOf(item);
 
   const panel = el("div", "panel");
+
+  const styleRow = el("div", "modes");
+  [
+    { id: "dots", label: "🔵 Dot by Dot" },
+    { id: "draw", label: "✏️ Free Draw" },
+  ].forEach((s) => {
+    const b = el("button", "btn small" + (state.traceStyle === s.id ? "" : " ghost"), s.label);
+    b.setAttribute("aria-pressed", state.traceStyle === s.id ? "true" : "false");
+    b.addEventListener("click", () => { state.traceStyle = s.id; config.rerender(); });
+    styleRow.appendChild(b);
+  });
+  panel.appendChild(styleRow);
+
+  if (state.traceStyle === "dots") {
+    buildDotTracePanel(panel, content, config, item, guideText);
+    return;
+  }
+
   panel.appendChild(el("div", "prompt", "✍️ Trace: <b>" + esc(guideText) + "</b>"));
   const board = createCanvasWritingBoard(guideText);
   panel.appendChild(board.element);
 
   const box = feedbackBox();
   const row = el("div", "row");
+
 
   const clearBtn = el("button", "btn ghost", "🧽 Clear");
   clearBtn.setAttribute("aria-label", "Clear the drawing");
