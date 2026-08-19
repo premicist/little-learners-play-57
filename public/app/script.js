@@ -57,16 +57,65 @@ const englishLetters = [
   { letter: "Z", lowercase: "z", word: "Zebra", visual: "🦓" },
 ];
 
-const nepaliLetters = [
-  { letter: "क", word: "कमल", visual: "🌸" },
-  { letter: "ख", word: "खरायो", visual: "🐰" },
-  { letter: "ग", word: "गाई", visual: "🐄" },
-  { letter: "घ", word: "घर", visual: "🏠" },
-  { letter: "ङ", word: "ङ", visual: "🔤" },
-  { letter: "च", word: "चरा", visual: "🐦" },
-  { letter: "छ", word: "छाता", visual: "☂️" },
-  { letter: "ज", word: "जुत्ता", visual: "👟" },
+/* Nepali (Devanagari) vowels — 13 स्वर वर्ण */
+const nepaliVowels = [
+  { letter: "अ", word: "अनार", visual: "🍎", type: "vowel" },
+  { letter: "आ", word: "आँप", visual: "🥭", type: "vowel" },
+  { letter: "इ", word: "इँट", visual: "🧱", type: "vowel" },
+  { letter: "ई", word: "ईश्वर", visual: "🙏", type: "vowel" },
+  { letter: "उ", word: "उखु", visual: "🎋", type: "vowel" },
+  { letter: "ऊ", word: "ऊन", visual: "🧶", type: "vowel" },
+  { letter: "ऋ", word: "ऋषि", visual: "🧘", type: "vowel" },
+  { letter: "ए", word: "एक", visual: "☝️", type: "vowel" },
+  { letter: "ऐ", word: "ऐना", visual: "🪞", type: "vowel" },
+  { letter: "ओ", word: "ओखर", visual: "🌰", type: "vowel" },
+  { letter: "औ", word: "औषधी", visual: "💊", type: "vowel" },
+  { letter: "अं", word: "अंगुर", visual: "🍇", type: "vowel" },
+  { letter: "अः", word: "अःहा", visual: "😀", type: "vowel" },
 ];
+
+/* Nepali (Devanagari) consonants — 36 व्यञ्जन वर्ण */
+const nepaliConsonants = [
+  { letter: "क", word: "कमल", visual: "🌸", type: "consonant" },
+  { letter: "ख", word: "खरायो", visual: "🐰", type: "consonant" },
+  { letter: "ग", word: "गाई", visual: "🐄", type: "consonant" },
+  { letter: "घ", word: "घर", visual: "🏠", type: "consonant" },
+  { letter: "ङ", word: "ङ्याउ", visual: "🐱", type: "consonant" },
+  { letter: "च", word: "चरा", visual: "🐦", type: "consonant" },
+  { letter: "छ", word: "छाता", visual: "☂️", type: "consonant" },
+  { letter: "ज", word: "जुत्ता", visual: "👟", type: "consonant" },
+  { letter: "झ", word: "झरना", visual: "💦", type: "consonant" },
+  { letter: "ञ", word: "ञ", visual: "🔤", type: "consonant" },
+  { letter: "ट", word: "टमाटर", visual: "🍅", type: "consonant" },
+  { letter: "ठ", word: "ठूलो हात्ती", visual: "🐘", type: "consonant" },
+  { letter: "ड", word: "डमरु", visual: "🥁", type: "consonant" },
+  { letter: "ढ", word: "ढोका", visual: "🚪", type: "consonant" },
+  { letter: "ण", word: "ण", visual: "🔤", type: "consonant" },
+  { letter: "त", word: "तारा", visual: "⭐", type: "consonant" },
+  { letter: "थ", word: "थाल", visual: "🍽️", type: "consonant" },
+  { letter: "द", word: "दियो", visual: "🪔", type: "consonant" },
+  { letter: "ध", word: "धागो", visual: "🧵", type: "consonant" },
+  { letter: "न", word: "नाक", visual: "👃", type: "consonant" },
+  { letter: "प", word: "पानी", visual: "💧", type: "consonant" },
+  { letter: "फ", word: "फूल", visual: "🌷", type: "consonant" },
+  { letter: "ब", word: "बदाम", visual: "🥜", type: "consonant" },
+  { letter: "भ", word: "भालु", visual: "🐻", type: "consonant" },
+  { letter: "म", word: "माछा", visual: "🐟", type: "consonant" },
+  { letter: "य", word: "यज्ञ", visual: "🔥", type: "consonant" },
+  { letter: "र", word: "रुख", visual: "🌳", type: "consonant" },
+  { letter: "ल", word: "लट्ठी", visual: "🦯", type: "consonant" },
+  { letter: "व", word: "वन", visual: "🌲", type: "consonant" },
+  { letter: "श", word: "शंख", visual: "🐚", type: "consonant" },
+  { letter: "ष", word: "षटकोण", visual: "⬢", type: "consonant" },
+  { letter: "स", word: "सूर्य", visual: "☀️", type: "consonant" },
+  { letter: "ह", word: "हाँस", visual: "🦆", type: "consonant" },
+  { letter: "क्ष", word: "क्षमा", visual: "🙏", type: "consonant" },
+  { letter: "त्र", word: "त्रिशूल", visual: "🔱", type: "consonant" },
+  { letter: "ज्ञ", word: "ज्ञान", visual: "📖", type: "consonant" },
+];
+
+const nepaliLetters = nepaliVowels.concat(nepaliConsonants);
+
 
 const numberItems = [
   { number: 1, wordEnglish: "One", wordNepali: "एक", visual: "⭐" },
