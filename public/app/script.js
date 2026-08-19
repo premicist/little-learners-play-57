@@ -57,16 +57,65 @@ const englishLetters = [
   { letter: "Z", lowercase: "z", word: "Zebra", visual: "🦓" },
 ];
 
-const nepaliLetters = [
-  { letter: "क", word: "कमल", visual: "🌸" },
-  { letter: "ख", word: "खरायो", visual: "🐰" },
-  { letter: "ग", word: "गाई", visual: "🐄" },
-  { letter: "घ", word: "घर", visual: "🏠" },
-  { letter: "ङ", word: "ङ", visual: "🔤" },
-  { letter: "च", word: "चरा", visual: "🐦" },
-  { letter: "छ", word: "छाता", visual: "☂️" },
-  { letter: "ज", word: "जुत्ता", visual: "👟" },
+/* Nepali (Devanagari) vowels — 13 स्वर वर्ण */
+const nepaliVowels = [
+  { letter: "अ", word: "अनार", visual: "🍎", type: "vowel" },
+  { letter: "आ", word: "आँप", visual: "🥭", type: "vowel" },
+  { letter: "इ", word: "इँट", visual: "🧱", type: "vowel" },
+  { letter: "ई", word: "ईश्वर", visual: "🙏", type: "vowel" },
+  { letter: "उ", word: "उखु", visual: "🎋", type: "vowel" },
+  { letter: "ऊ", word: "ऊन", visual: "🧶", type: "vowel" },
+  { letter: "ऋ", word: "ऋषि", visual: "🧘", type: "vowel" },
+  { letter: "ए", word: "एक", visual: "☝️", type: "vowel" },
+  { letter: "ऐ", word: "ऐना", visual: "🪞", type: "vowel" },
+  { letter: "ओ", word: "ओखर", visual: "🌰", type: "vowel" },
+  { letter: "औ", word: "औषधी", visual: "💊", type: "vowel" },
+  { letter: "अं", word: "अंगुर", visual: "🍇", type: "vowel" },
+  { letter: "अः", word: "अःहा", visual: "😀", type: "vowel" },
 ];
+
+/* Nepali (Devanagari) consonants — 36 व्यञ्जन वर्ण */
+const nepaliConsonants = [
+  { letter: "क", word: "कमल", visual: "🌸", type: "consonant" },
+  { letter: "ख", word: "खरायो", visual: "🐰", type: "consonant" },
+  { letter: "ग", word: "गाई", visual: "🐄", type: "consonant" },
+  { letter: "घ", word: "घर", visual: "🏠", type: "consonant" },
+  { letter: "ङ", word: "ङ्याउ", visual: "🐱", type: "consonant" },
+  { letter: "च", word: "चरा", visual: "🐦", type: "consonant" },
+  { letter: "छ", word: "छाता", visual: "☂️", type: "consonant" },
+  { letter: "ज", word: "जुत्ता", visual: "👟", type: "consonant" },
+  { letter: "झ", word: "झरना", visual: "💦", type: "consonant" },
+  { letter: "ञ", word: "ञ", visual: "🔤", type: "consonant" },
+  { letter: "ट", word: "टमाटर", visual: "🍅", type: "consonant" },
+  { letter: "ठ", word: "ठूलो हात्ती", visual: "🐘", type: "consonant" },
+  { letter: "ड", word: "डमरु", visual: "🥁", type: "consonant" },
+  { letter: "ढ", word: "ढोका", visual: "🚪", type: "consonant" },
+  { letter: "ण", word: "ण", visual: "🔤", type: "consonant" },
+  { letter: "त", word: "तारा", visual: "⭐", type: "consonant" },
+  { letter: "थ", word: "थाल", visual: "🍽️", type: "consonant" },
+  { letter: "द", word: "दियो", visual: "🪔", type: "consonant" },
+  { letter: "ध", word: "धागो", visual: "🧵", type: "consonant" },
+  { letter: "न", word: "नाक", visual: "👃", type: "consonant" },
+  { letter: "प", word: "पानी", visual: "💧", type: "consonant" },
+  { letter: "फ", word: "फूल", visual: "🌷", type: "consonant" },
+  { letter: "ब", word: "बदाम", visual: "🥜", type: "consonant" },
+  { letter: "भ", word: "भालु", visual: "🐻", type: "consonant" },
+  { letter: "म", word: "माछा", visual: "🐟", type: "consonant" },
+  { letter: "य", word: "यज्ञ", visual: "🔥", type: "consonant" },
+  { letter: "र", word: "रुख", visual: "🌳", type: "consonant" },
+  { letter: "ल", word: "लट्ठी", visual: "🦯", type: "consonant" },
+  { letter: "व", word: "वन", visual: "🌲", type: "consonant" },
+  { letter: "श", word: "शंख", visual: "🐚", type: "consonant" },
+  { letter: "ष", word: "षटकोण", visual: "⬢", type: "consonant" },
+  { letter: "स", word: "सूर्य", visual: "☀️", type: "consonant" },
+  { letter: "ह", word: "हाँस", visual: "🦆", type: "consonant" },
+  { letter: "क्ष", word: "क्षमा", visual: "🙏", type: "consonant" },
+  { letter: "त्र", word: "त्रिशूल", visual: "🔱", type: "consonant" },
+  { letter: "ज्ञ", word: "ज्ञान", visual: "📖", type: "consonant" },
+];
+
+const nepaliLetters = nepaliVowels.concat(nepaliConsonants);
+
 
 const numberItems = [
   { number: 1, wordEnglish: "One", wordNepali: "एक", visual: "⭐" },
@@ -317,6 +366,17 @@ function playTryAgainSound() {
 function playCelebrateSound() {
   [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.12, 0.3));
 }
+
+/** Short bright blip used when a dot is connected. */
+function playPopSound(step) {
+  const base = 440 + ((step || 0) % 8) * 40;
+  tone(base, 0, 0.1, 0.14);
+}
+
+/* Font stack used for offscreen glyph rendering (matches the CSS font). */
+const FONT_STACK =
+  '"Segoe UI","Noto Sans","Noto Sans Devanagari","Nirmala UI","Mangal",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif';
+
 
 /* ---------------------------------------------------------
    5. SPEECH (Web Speech API) — safe if unavailable
@@ -623,21 +683,288 @@ function createCanvasWritingBoard(guideText, options) {
   };
 }
 
+/* ---------------------------------------------------------
+   7b. CONNECT-THE-DOTS LETTER / NUMBER BUILDER
+   Dots are derived automatically from the glyph outline, so it works
+   for A–Z, 0–9 and every Devanagari letter without hand-made paths.
+   --------------------------------------------------------- */
+
+const dotPathCache = Object.create(null);
+
+/** Render a glyph offscreen and return ordered dot strokes in 0..1 coords. */
+function glyphDotStrokes(text) {
+  if (dotPathCache[text]) return dotPathCache[text];
+  const S = 200;
+  const off = document.createElement("canvas");
+  off.width = S;
+  off.height = S;
+  const c = off.getContext("2d");
+  if (!c) return [];
+  c.fillStyle = "#fff";
+  c.fillRect(0, 0, S, S);
+  c.fillStyle = "#000";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  let size = 150;
+  c.font = "700 " + size + "px " + FONT_STACK;
+  const w = c.measureText(text).width;
+  if (w > S * 0.78) {
+    size = Math.max(40, Math.floor((size * S * 0.78) / w));
+    c.font = "700 " + size + "px " + FONT_STACK;
+  }
+  c.fillText(text, S / 2, S / 2);
+
+  const img = c.getImageData(0, 0, S, S).data;
+  const on = new Uint8Array(S * S);
+  for (let i = 0; i < S * S; i++) on[i] = img[i * 4] < 128 ? 1 : 0;
+  const get = (x, y) => (x < 0 || y < 0 || x >= S || y >= S ? 0 : on[y * S + x]);
+
+  const seen = new Uint8Array(S * S);
+  const dirs = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  const strokes = [];
+
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      if (!get(x, y) || seen[y * S + x]) continue;
+      // flood fill the component so we only trace its outer contour once
+      const stack = [[x, y]];
+      const comp = [];
+      seen[y * S + x] = 1;
+      while (stack.length) {
+        const p = stack.pop();
+        comp.push(p);
+        for (let d = 0; d < 8; d++) {
+          const nx = p[0] + dirs[d][0];
+          const ny = p[1] + dirs[d][1];
+          if (get(nx, ny) && !seen[ny * S + nx]) {
+            seen[ny * S + nx] = 1;
+            stack.push([nx, ny]);
+          }
+        }
+      }
+      if (comp.length < 40) continue;
+
+      // radial-sweep contour trace starting at this top-left pixel
+      const contour = [[x, y]];
+      let cur = [x, y];
+      let dir = 0;
+      for (let step = 0; step < 6000; step++) {
+        let found = false;
+        for (let i = 0; i < 8; i++) {
+          const nd = (dir + 6 + i) % 8;
+          const nx = cur[0] + dirs[nd][0];
+          const ny = cur[1] + dirs[nd][1];
+          if (get(nx, ny)) {
+            cur = [nx, ny];
+            dir = nd;
+            contour.push(cur);
+            found = true;
+            break;
+          }
+        }
+        if (!found) break;
+        if (cur[0] === x && cur[1] === y) break;
+      }
+      if (contour.length < 12) continue;
+
+      // resample evenly by arc length into a friendly number of dots
+      let len = 0;
+      const acc = [0];
+      for (let i = 1; i < contour.length; i++) {
+        len += Math.hypot(contour[i][0] - contour[i - 1][0], contour[i][1] - contour[i - 1][1]);
+        acc.push(len);
+      }
+      const count = Math.max(6, Math.min(22, Math.round(len / 22)));
+      const dots = [];
+      let idx = 0;
+      for (let k = 0; k < count; k++) {
+        const target = (len * k) / count;
+        while (idx < acc.length - 1 && acc[idx] < target) idx++;
+        dots.push({ x: contour[idx][0] / S, y: contour[idx][1] / S });
+      }
+      strokes.push({ dots, minX: Math.min.apply(null, dots.map((d) => d.x)) });
+    }
+  }
+
+  strokes.sort((a, b) => a.minX - b.minX);
+  const result = strokes.map((s) => s.dots);
+  dotPathCache[text] = result;
+  return result;
+}
+
+/**
+ * Connect-the-dots board: one dot blinks, the rest are faded. Tapping the
+ * blinking dot draws the next segment and the following dot starts blinking.
+ */
+function createDotTraceBoard(text, options) {
+  const opts = options || {};
+  const wrap = el("div", "canvas-wrap dot-wrap");
+  const canvas = document.createElement("canvas");
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", "Connect the dots to build " + text);
+  wrap.appendChild(canvas);
+
+  const strokes = glyphDotStrokes(text);
+  const flat = [];
+  strokes.forEach((dots, si) => dots.forEach((d, di) => flat.push({ x: d.x, y: d.y, stroke: si, first: di === 0 })));
+
+  let progress = 0; // number of dots already connected
+  let ctx = null;
+  let W = 1;
+  let H = 1;
+  let ratio = 1;
+  let raf = 0;
+  let box = { x: 0, y: 0, size: 1 };
+
+  function resize() {
+    const rect = wrap.getBoundingClientRect();
+    ratio = window.devicePixelRatio || 1;
+    W = Math.max(1, Math.floor(rect.width * ratio));
+    H = Math.max(1, Math.floor(rect.height * ratio));
+    canvas.width = W;
+    canvas.height = H;
+    ctx = canvas.getContext("2d");
+    const size = Math.min(W, H) * 0.9;
+    box = { x: (W - size) / 2, y: (H - size) / 2, size };
+  }
+
+  const px = (d) => ({ x: box.x + d.x * box.size, y: box.y + d.y * box.size });
+
+  function draw(t) {
+    if (!wrap.isConnected) return;
+    if (!ctx) resize();
+    ctx.clearRect(0, 0, W, H);
+
+    // faint ghost of the finished letter
+    ctx.save();
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = "#3b2b1a";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "700 " + Math.floor(box.size * 0.72) + "px " + FONT_STACK;
+    ctx.fillText(text, W / 2, H / 2);
+    ctx.restore();
+
+    // connected lines
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(6, box.size * 0.045);
+    ctx.strokeStyle = opts.color || "#ff8a3d";
+    for (let i = 1; i < progress; i++) {
+      if (flat[i].first) continue;
+      const a = px(flat[i - 1]);
+      const b = px(flat[i]);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+
+    const pulse = 0.5 + 0.5 * Math.sin(t / 260);
+    for (let i = 0; i < flat.length; i++) {
+      const p = px(flat[i]);
+      const r = Math.max(5, box.size * 0.022);
+      if (i < progress) {
+        ctx.fillStyle = "#45c07a";
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (i === progress) {
+        ctx.globalAlpha = 0.35 + 0.65 * pulse;
+        ctx.fillStyle = "#ff3d7a";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * (1.5 + 0.7 * pulse), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = "#7a6752";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    raf = window.requestAnimationFrame(draw);
+  }
+
+  function tap(e) {
+    e.preventDefault();
+    if (progress >= flat.length) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * ratio;
+    const y = (e.clientY - rect.top) * ratio;
+    const p = px(flat[progress]);
+    const hit = Math.max(28 * ratio, box.size * 0.09);
+    if (Math.hypot(x - p.x, y - p.y) <= hit) {
+      progress++;
+      playPopSound();
+      if (progress >= flat.length) {
+        if (opts.onComplete) opts.onComplete();
+      } else if (opts.onStep) {
+        opts.onStep(progress, flat.length);
+      }
+    } else if (opts.onMiss) {
+      opts.onMiss();
+    }
+  }
+
+  canvas.addEventListener("pointerdown", tap);
+  canvas.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
+  window.addEventListener("resize", resize);
+  setTimeout(() => { resize(); }, 30);
+  raf = window.requestAnimationFrame(draw);
+
+  return {
+    element: wrap,
+    total: flat.length,
+    reset() { progress = 0; },
+    isComplete() { return flat.length > 0 && progress >= flat.length; },
+    stop() { if (raf) window.cancelAnimationFrame(raf); },
+  };
+}
+
 /** Standard trace screen used by letters, numbers and words. */
+
 function buildTraceScreen(content, config) {
   // config: { items, guideOf, speakOf, indexKey }
   const state = appState.game;
   if (typeof state.traceIndex !== "number") state.traceIndex = 0;
+  if (!state.traceStyle) state.traceStyle = "dots";
   const item = config.items[state.traceIndex % config.items.length];
   const guideText = config.guideOf(item);
 
   const panel = el("div", "panel");
+
+  const styleRow = el("div", "modes");
+  [
+    { id: "dots", label: "🔵 Dot by Dot" },
+    { id: "draw", label: "✏️ Free Draw" },
+  ].forEach((s) => {
+    const b = el("button", "btn small" + (state.traceStyle === s.id ? "" : " ghost"), s.label);
+    b.setAttribute("aria-pressed", state.traceStyle === s.id ? "true" : "false");
+    b.addEventListener("click", () => { state.traceStyle = s.id; config.rerender(); });
+    styleRow.appendChild(b);
+  });
+  panel.appendChild(styleRow);
+
+  if (state.traceStyle === "dots") {
+    buildDotTracePanel(panel, content, config, item, guideText);
+    return;
+  }
+
   panel.appendChild(el("div", "prompt", "✍️ Trace: <b>" + esc(guideText) + "</b>"));
   const board = createCanvasWritingBoard(guideText);
   panel.appendChild(board.element);
 
   const box = feedbackBox();
   const row = el("div", "row");
+
 
   const clearBtn = el("button", "btn ghost", "🧽 Clear");
   clearBtn.setAttribute("aria-label", "Clear the drawing");
@@ -683,6 +1010,68 @@ function buildTraceScreen(content, config) {
   panel.appendChild(progressBar(state.traceIndex + 1, config.items.length));
   content.appendChild(panel);
 }
+
+/** Connect-the-dots writing panel: tap each blinking dot to build the shape. */
+function buildDotTracePanel(panel, content, config, item, guideText) {
+  const state = appState.game;
+  panel.appendChild(el("div", "prompt", "🔵 Tap the blinking dot to build <b>" + esc(guideText) + "</b>"));
+
+  const box = feedbackBox();
+  const counter = el("div", "dot-counter", "");
+  let board = null;
+
+  const setCount = (done, total) => {
+    counter.textContent = "Dots: " + done + " / " + total;
+  };
+
+  const makeBoard = () => {
+    if (board) board.stop();
+    board = createDotTraceBoard(guideText, {
+      onStep: (done, total) => setCount(done, total),
+      onMiss: () => showFeedback(box, "Tap the blinking dot! 🔵", true),
+      onComplete: () => {
+        setCount(board.total, board.total);
+        celebrateCorrect(box, praise());
+        if (config.speakOf) config.speakOf(item);
+      },
+    });
+    setCount(0, board.total);
+    return board.element;
+  };
+
+  const holder = el("div", "");
+  holder.appendChild(makeBoard());
+  panel.appendChild(holder);
+  panel.appendChild(counter);
+
+  const row = el("div", "row");
+  row.appendChild(speakerButton("Listen", () => config.speakOf && config.speakOf(item)));
+
+  const restart = el("button", "btn blue", "🔁 Start Over");
+  restart.setAttribute("aria-label", "Start the dots again");
+  restart.addEventListener("click", () => {
+    holder.innerHTML = "";
+    holder.appendChild(makeBoard());
+    showFeedback(box, "");
+  });
+  row.appendChild(restart);
+
+  const nextBtn = el("button", "btn", "➡️ Next");
+  nextBtn.setAttribute("aria-label", "Next item to build");
+  nextBtn.addEventListener("click", () => {
+    if (board) board.stop();
+    state.traceIndex = (state.traceIndex + 1) % config.items.length;
+    config.rerender();
+  });
+  row.appendChild(nextBtn);
+
+  panel.appendChild(row);
+  panel.appendChild(box);
+  panel.appendChild(progressBar(state.traceIndex + 1, config.items.length));
+  content.appendChild(panel);
+}
+
+
 
 /** Standard "say it out loud" screen. */
 function buildSpeakScreen(content, config) {
