@@ -684,17 +684,71 @@ function createCanvasWritingBoard(guideText, options) {
 }
 
 /* ---------------------------------------------------------
-   7b. CONNECT-THE-DOTS LETTER / NUMBER BUILDER
-   Dots are derived automatically from the glyph outline, so it works
-   for A–Z, 0–9 and every Devanagari letter without hand-made paths.
+   7b. ARROW-BY-ARROW LETTER / NUMBER WRITER
+   Arrows sit on the real written shape of the glyph and follow proper
+   stroke order. English letters and digits use hand-authored stroke
+   paths; every other glyph (Devanagari etc.) is skeletonised from the
+   font so the arrows still follow the letter's centre line.
    --------------------------------------------------------- */
 
-const dotPathCache = Object.create(null);
+const strokePathCache = Object.create(null);
 
-/** Render a glyph offscreen and return ordered dot strokes in 0..1 coords. */
-function glyphDotStrokes(text) {
-  if (dotPathCache[text]) return dotPathCache[text];
-  const S = 200;
+/** helper: sample an ellipse arc (degrees, canvas y-down) */
+function arcPts(cx, cy, rx, ry, a0, a1, steps) {
+  const n = steps || 16;
+  const out = [];
+  for (let i = 0; i <= n; i++) {
+    const a = ((a0 + ((a1 - a0) * i) / n) * Math.PI) / 180;
+    out.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+  }
+  return out;
+}
+
+const L = 0.26, R = 0.74, MX = 0.5, T = 0.15, B = 0.85, MY = 0.5;
+
+/** Hand-authored stroke order paths (normalised 0..1, y down). */
+const HAND_STROKES = {
+  A: [[[L, B], [MX, T]], [[MX, T], [R, B]], [[0.35, 0.62], [0.65, 0.62]]],
+  B: [[[L, T], [L, B]], arcPts(L, 0.325, 0.22, 0.175, -90, 90, 12), arcPts(L, 0.675, 0.25, 0.175, -90, 90, 12)],
+  C: [arcPts(MX, MY, 0.24, 0.35, -60, -300, 24)],
+  D: [[[L, T], [L, B]], arcPts(L, MY, 0.28, 0.35, -90, 90, 18)],
+  E: [[[L, T], [L, B]], [[L, T], [R, T]], [[L, MY], [0.66, MY]], [[L, B], [R, B]]],
+  F: [[[L, T], [L, B]], [[L, T], [R, T]], [[L, MY], [0.66, MY]]],
+  G: [arcPts(MX, MY, 0.24, 0.35, -60, -300, 22).concat([[0.74, 0.5], [0.56, 0.5]])],
+  H: [[[L, T], [L, B]], [[R, T], [R, B]], [[L, MY], [R, MY]]],
+  I: [[[0.36, T], [0.64, T]], [[MX, T], [MX, B]], [[0.36, B], [0.64, B]]],
+  J: [[[R, T], [R, 0.68]].concat(arcPts(0.5, 0.68, 0.24, 0.17, 0, 180, 12))],
+  K: [[[L, T], [L, B]], [[R, T], [L, 0.55]], [[L, 0.55], [R, B]]],
+  L: [[[L, T], [L, B], [R, B]]],
+  M: [[[L, B], [L, T], [MX, 0.6], [R, T], [R, B]]],
+  N: [[[L, B], [L, T], [R, B], [R, T]]],
+  O: [arcPts(MX, MY, 0.24, 0.35, -90, -450, 28)],
+  P: [[[L, T], [L, B]], arcPts(L, 0.33, 0.24, 0.18, -90, 90, 14)],
+  Q: [arcPts(MX, MY, 0.24, 0.35, -90, -450, 26), [[0.6, 0.68], [0.8, 0.9]]],
+  R: [[[L, T], [L, B]], arcPts(L, 0.33, 0.24, 0.18, -90, 90, 14), [[L, 0.51], [R, B]]],
+  S: [[[0.7, 0.24], [0.58, 0.16], [0.42, 0.16], [0.33, 0.25], [0.35, 0.38], [0.5, 0.46], [0.62, 0.53], [0.7, 0.63], [0.68, 0.76], [0.53, 0.85], [0.36, 0.82], [0.3, 0.74]]],
+  T: [[[L, T], [R, T]], [[MX, T], [MX, B]]],
+  U: [[[L, T], [L, 0.66]].concat(arcPts(MX, 0.66, 0.24, 0.19, 180, 0, 12)).concat([[R, T]])],
+  V: [[[L, T], [MX, B], [R, T]]],
+  W: [[[L, T], [0.38, B], [MX, 0.46], [0.62, B], [R, T]]],
+  X: [[[L, T], [R, B]], [[R, T], [L, B]]],
+  Y: [[[L, T], [MX, 0.52]], [[R, T], [MX, 0.52]], [[MX, 0.52], [MX, B]]],
+  Z: [[[L, T], [R, T], [L, B], [R, B]]],
+  "0": [arcPts(MX, MY, 0.2, 0.35, -90, -450, 26)],
+  "1": [[[0.38, 0.29], [MX, T], [MX, B]], [[0.36, B], [0.64, B]]],
+  "2": [[[0.31, 0.29], [0.38, 0.18], [0.53, 0.15], [0.66, 0.23], [0.66, 0.37], [0.3, 0.85], [0.72, 0.85]]],
+  "3": [[[0.33, 0.24], [0.45, 0.15], [0.61, 0.18], [0.66, 0.3], [0.55, 0.45], [0.48, 0.47], [0.62, 0.51], [0.7, 0.63], [0.64, 0.79], [0.48, 0.85], [0.33, 0.79]]],
+  "4": [[[0.63, T], [0.28, 0.61], [0.76, 0.61]], [[0.63, 0.38], [0.63, B]]],
+  "5": [[[0.68, T], [0.36, T], [0.34, 0.44], [0.5, 0.4], [0.65, 0.47], [0.7, 0.62], [0.62, 0.79], [0.45, 0.85], [0.31, 0.79]]],
+  "6": [[[0.66, 0.18], [0.5, 0.16], [0.37, 0.28], [0.31, 0.5], [0.31, 0.68], [0.41, 0.83], [0.56, 0.85], [0.68, 0.75], [0.67, 0.6], [0.55, 0.51], [0.4, 0.53], [0.32, 0.63]]],
+  "7": [[[L, T], [R, T], [0.42, B]]],
+  "8": [[[0.5, 0.15], [0.37, 0.2], [0.36, 0.33], [0.5, 0.45], [0.65, 0.55], [0.68, 0.72], [0.5, 0.85], [0.34, 0.75], [0.36, 0.58], [0.5, 0.45], [0.62, 0.34], [0.63, 0.21], [0.5, 0.15]]],
+  "9": [[[0.66, 0.5], [0.55, 0.58], [0.4, 0.55], [0.33, 0.42], [0.37, 0.25], [0.52, 0.17], [0.65, 0.25], [0.68, 0.43], [0.66, 0.62], [0.58, 0.78], [0.44, 0.85]]],
+};
+
+/** Zhang-Suen thinning + skeleton graph walk -> centre-line strokes. */
+function skeletonStrokes(text) {
+  const S = 140;
   const off = document.createElement("canvas");
   off.width = S;
   off.height = S;
@@ -705,115 +759,211 @@ function glyphDotStrokes(text) {
   c.fillStyle = "#000";
   c.textAlign = "center";
   c.textBaseline = "middle";
-  let size = 150;
-  c.font = "700 " + size + "px " + FONT_STACK;
+  let size = Math.floor(S * 0.72);
+  c.font = "600 " + size + "px " + FONT_STACK;
   const w = c.measureText(text).width;
-  if (w > S * 0.78) {
-    size = Math.max(40, Math.floor((size * S * 0.78) / w));
-    c.font = "700 " + size + "px " + FONT_STACK;
+  if (w > S * 0.8) {
+    size = Math.max(30, Math.floor((size * S * 0.8) / w));
+    c.font = "600 " + size + "px " + FONT_STACK;
   }
   c.fillText(text, S / 2, S / 2);
 
   const img = c.getImageData(0, 0, S, S).data;
-  const on = new Uint8Array(S * S);
-  for (let i = 0; i < S * S; i++) on[i] = img[i * 4] < 128 ? 1 : 0;
-  const get = (x, y) => (x < 0 || y < 0 || x >= S || y >= S ? 0 : on[y * S + x]);
+  let g = new Uint8Array(S * S);
+  for (let i = 0; i < S * S; i++) g[i] = img[i * 4] < 128 ? 1 : 0;
+  const at = (a, x, y) => (x < 0 || y < 0 || x >= S || y >= S ? 0 : a[y * S + x]);
 
-  const seen = new Uint8Array(S * S);
-  const dirs = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
-  const strokes = [];
-
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      if (!get(x, y) || seen[y * S + x]) continue;
-      // flood fill the component so we only trace its outer contour once
-      const stack = [[x, y]];
-      const comp = [];
-      seen[y * S + x] = 1;
-      while (stack.length) {
-        const p = stack.pop();
-        comp.push(p);
-        for (let d = 0; d < 8; d++) {
-          const nx = p[0] + dirs[d][0];
-          const ny = p[1] + dirs[d][1];
-          if (get(nx, ny) && !seen[ny * S + nx]) {
-            seen[ny * S + nx] = 1;
-            stack.push([nx, ny]);
+  // ---- Zhang-Suen thinning ----
+  let changed = true;
+  let guard = 0;
+  while (changed && guard++ < 60) {
+    changed = false;
+    for (let pass = 0; pass < 2; pass++) {
+      const del = [];
+      for (let y = 1; y < S - 1; y++) {
+        for (let x = 1; x < S - 1; x++) {
+          if (!at(g, x, y)) continue;
+          const p = [at(g, x, y - 1), at(g, x + 1, y - 1), at(g, x + 1, y), at(g, x + 1, y + 1),
+            at(g, x, y + 1), at(g, x - 1, y + 1), at(g, x - 1, y), at(g, x - 1, y - 1)];
+          let bp = 0, ap = 0;
+          for (let i = 0; i < 8; i++) {
+            bp += p[i];
+            if (p[i] === 0 && p[(i + 1) % 8] === 1) ap++;
           }
+          if (bp < 2 || bp > 6 || ap !== 1) continue;
+          const c1 = pass === 0 ? p[0] * p[2] * p[4] : p[0] * p[2] * p[6];
+          const c2 = pass === 0 ? p[2] * p[4] * p[6] : p[0] * p[4] * p[6];
+          if (c1 === 0 && c2 === 0) del.push(y * S + x);
         }
       }
-      if (comp.length < 40) continue;
-
-      // radial-sweep contour trace starting at this top-left pixel
-      const contour = [[x, y]];
-      let cur = [x, y];
-      let dir = 0;
-      for (let step = 0; step < 6000; step++) {
-        let found = false;
-        for (let i = 0; i < 8; i++) {
-          const nd = (dir + 6 + i) % 8;
-          const nx = cur[0] + dirs[nd][0];
-          const ny = cur[1] + dirs[nd][1];
-          if (get(nx, ny)) {
-            cur = [nx, ny];
-            dir = nd;
-            contour.push(cur);
-            found = true;
-            break;
-          }
-        }
-        if (!found) break;
-        if (cur[0] === x && cur[1] === y) break;
+      if (del.length) {
+        changed = true;
+        for (let i = 0; i < del.length; i++) g[del[i]] = 0;
       }
-      if (contour.length < 12) continue;
-
-      // resample evenly by arc length into a friendly number of dots
-      let len = 0;
-      const acc = [0];
-      for (let i = 1; i < contour.length; i++) {
-        len += Math.hypot(contour[i][0] - contour[i - 1][0], contour[i][1] - contour[i - 1][1]);
-        acc.push(len);
-      }
-      const count = Math.max(6, Math.min(22, Math.round(len / 22)));
-      const dots = [];
-      let idx = 0;
-      for (let k = 0; k < count; k++) {
-        const target = (len * k) / count;
-        while (idx < acc.length - 1 && acc[idx] < target) idx++;
-        dots.push({ x: contour[idx][0] / S, y: contour[idx][1] / S });
-      }
-      strokes.push({ dots, minX: Math.min.apply(null, dots.map((d) => d.x)) });
     }
   }
 
-  strokes.sort((a, b) => a.minX - b.minX);
-  const result = strokes.map((s) => s.dots);
-  dotPathCache[text] = result;
-  return result;
+  // ---- graph walk ----
+  const nb = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  const deg = (x, y) => {
+    let n = 0;
+    for (let i = 0; i < 8; i++) n += at(g, x + nb[i][0], y + nb[i][1]);
+    return n;
+  };
+  const used = new Set();
+  const key = (x, y) => y * S + x;
+  const edges = [];
+
+  function walk(sx, sy, dx, dy) {
+    const pts = [[sx, sy]];
+    let cx = sx + dx, cy = sy + dy;
+    let px = sx, py = sy;
+    let steps = 0;
+    while (steps++ < 4000) {
+      pts.push([cx, cy]);
+      used.add(key(cx, cy) + ":" + key(px, py));
+      used.add(key(px, py) + ":" + key(cx, cy));
+      if (deg(cx, cy) !== 2) break;
+      let nx = -1, ny = -1;
+      for (let i = 0; i < 8; i++) {
+        const tx = cx + nb[i][0], ty = cy + nb[i][1];
+        if (!at(g, tx, ty)) continue;
+        if (tx === px && ty === py) continue;
+        nx = tx; ny = ty; break;
+      }
+      if (nx < 0) break;
+      px = cx; py = cy; cx = nx; cy = ny;
+    }
+    if (pts.length > 4) edges.push(pts);
+  }
+
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      if (!at(g, x, y)) continue;
+      const d = deg(x, y);
+      if (d === 2) continue;
+      for (let i = 0; i < 8; i++) {
+        const tx = x + nb[i][0], ty = y + nb[i][1];
+        if (!at(g, tx, ty)) continue;
+        if (used.has(key(x, y) + ":" + key(tx, ty))) continue;
+        walk(x, y, nb[i][0], nb[i][1]);
+      }
+    }
+  }
+  // closed loops (all degree 2)
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      if (!at(g, x, y) || deg(x, y) !== 2) continue;
+      let free = false;
+      for (let i = 0; i < 8; i++) {
+        const tx = x + nb[i][0], ty = y + nb[i][1];
+        if (at(g, tx, ty) && !used.has(key(x, y) + ":" + key(tx, ty))) free = true;
+      }
+      if (!free) continue;
+      for (let i = 0; i < 8; i++) {
+        const tx = x + nb[i][0], ty = y + nb[i][1];
+        if (at(g, tx, ty) && !used.has(key(x, y) + ":" + key(tx, ty))) { walk(x, y, nb[i][0], nb[i][1]); break; }
+      }
+    }
+  }
+
+  const isDeva = /[\u0900-\u097F]/.test(text);
+  const strokes = edges.map((pts) => {
+    let minX = 1, minY = 1, maxX = 0, maxY = 0;
+    const norm = pts.map((p) => {
+      const x = p[0] / S, y = p[1] / S;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+      return [x, y];
+    });
+    const wide = maxX - minX > maxY - minY;
+    // orient: horizontal strokes left->right, vertical strokes top->bottom
+    const a = norm[0], b = norm[norm.length - 1];
+    if ((wide && b[0] < a[0]) || (!wide && b[1] < a[1])) norm.reverse();
+    const topBar = isDeva && wide && maxY - minY < 0.06 && minY < 0.42 && maxX - minX > 0.12;
+    return { pts: norm, minX, minY, wide, topBar };
+  });
+
+  // stroke order: body strokes left-to-right, Devanagari head-line last
+  strokes.sort((a, b) => {
+    if (a.topBar !== b.topBar) return a.topBar ? 1 : -1;
+    if (Math.abs(a.minX - b.minX) > 0.05) return a.minX - b.minX;
+    return a.minY - b.minY;
+  });
+  return strokes.map((s) => s.pts);
+}
+
+/** Resample a polyline into evenly spaced arrow anchor points. */
+function resampleStroke(pts, spacing) {
+  if (pts.length < 2) return pts.slice();
+  let total = 0;
+  const acc = [0];
+  for (let i = 1; i < pts.length; i++) {
+    total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    acc.push(total);
+  }
+  if (total < 0.02) return [pts[0], pts[pts.length - 1]];
+  const n = Math.max(2, Math.min(14, Math.round(total / spacing)));
+  const out = [];
+  let idx = 1;
+  for (let k = 0; k <= n; k++) {
+    const target = (total * k) / n;
+    while (idx < acc.length - 1 && acc[idx] < target) idx++;
+    const t0 = acc[idx - 1], t1 = acc[idx];
+    const f = t1 > t0 ? (target - t0) / (t1 - t0) : 0;
+    out.push([
+      pts[idx - 1][0] + (pts[idx][0] - pts[idx - 1][0]) * f,
+      pts[idx - 1][1] + (pts[idx][1] - pts[idx - 1][1]) * f,
+    ]);
+  }
+  return out;
+}
+
+/** Ordered stroke paths for any glyph, in 0..1 coords. */
+function glyphStrokePaths(text) {
+  if (strokePathCache[text]) return strokePathCache[text];
+  let raw = HAND_STROKES[text] || HAND_STROKES[String(text).toUpperCase()];
+  if (!raw) raw = skeletonStrokes(text);
+  const paths = raw
+    .map((s) => resampleStroke(s.map((p) => [p[0], p[1]]), 0.115))
+    .filter((s) => s.length >= 2);
+  strokePathCache[text] = paths;
+  return paths;
 }
 
 /**
- * Connect-the-dots board: one dot blinks, the rest are faded. Tapping the
- * blinking dot draws the next segment and the following dot starts blinking.
+ * Arrow writing board: arrows sit on the real letter shape in stroke order.
+ * The current arrow blinks bright red; future arrows are faded. Tapping the
+ * red arrow removes it and grows a thick glowing sky-blue traced line.
  */
 function createDotTraceBoard(text, options) {
   const opts = options || {};
   const wrap = el("div", "canvas-wrap dot-wrap");
   const canvas = document.createElement("canvas");
   canvas.setAttribute("role", "img");
-  canvas.setAttribute("aria-label", "Connect the dots to build " + text);
+  canvas.setAttribute("aria-label", "Tap the red arrows to write " + text);
   wrap.appendChild(canvas);
 
-  const strokes = glyphDotStrokes(text);
+  const paths = glyphStrokePaths(text);
+  // flat arrow list: each arrow knows its point, its heading and its stroke
   const flat = [];
-  strokes.forEach((dots, si) => dots.forEach((d, di) => flat.push({ x: d.x, y: d.y, stroke: si, first: di === 0 })));
+  paths.forEach((pts, si) => {
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i];
+      const nxt = pts[i + 1] || pts[i];
+      const prev = pts[i - 1] || pts[i];
+      const dx = nxt[0] - (i + 1 < pts.length ? a[0] : prev[0]);
+      const dy = nxt[1] - (i + 1 < pts.length ? a[1] : prev[1]);
+      flat.push({ x: a[0], y: a[1], angle: Math.atan2(dy, dx), stroke: si, first: i === 0 });
+    }
+  });
 
-  let progress = 0; // number of dots already connected
+  let progress = 0;
+  let grow = 1; // 0..1 animation of the newest segment
   let ctx = null;
-  let W = 1;
-  let H = 1;
-  let ratio = 1;
-  let raf = 0;
+  let W = 1, H = 1, ratio = 1, raf = 0;
   let box = { x: 0, y: 0, size: 1 };
 
   function resize() {
@@ -824,20 +974,61 @@ function createDotTraceBoard(text, options) {
     canvas.width = W;
     canvas.height = H;
     ctx = canvas.getContext("2d");
-    const size = Math.min(W, H) * 0.9;
+    const size = Math.min(W, H) * 0.92;
     box = { x: (W - size) / 2, y: (H - size) / 2, size };
   }
 
   const px = (d) => ({ x: box.x + d.x * box.size, y: box.y + d.y * box.size });
+
+  function arrow(p, ang, scale, color, alpha) {
+    const s = Math.max(9, box.size * 0.045) * scale;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(ang);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(s, 0);
+    ctx.lineTo(-s * 0.8, -s * 0.72);
+    ctx.lineTo(-s * 0.42, 0);
+    ctx.lineTo(-s * 0.8, s * 0.72);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function tracedLine(upto, partial) {
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(10, box.size * 0.075);
+    ctx.strokeStyle = "#38bdf8";
+    ctx.shadowColor = "rgba(56,189,248,0.85)";
+    ctx.shadowBlur = Math.max(10, box.size * 0.05);
+    for (let i = 1; i < upto; i++) {
+      if (flat[i].first) continue;
+      const a = px(flat[i - 1]);
+      const b = px(flat[i]);
+      const last = i === upto - 1;
+      const f = last ? partial : 1;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
 
   function draw(t) {
     if (!wrap.isConnected) return;
     if (!ctx) resize();
     ctx.clearRect(0, 0, W, H);
 
-    // faint ghost of the finished letter
+    if (grow < 1) grow = Math.min(1, grow + 0.09);
+
+    // very faint ghost so the shape is recognisable while writing
     ctx.save();
-    ctx.globalAlpha = 0.1;
+    ctx.globalAlpha = 0.07;
     ctx.fillStyle = "#3b2b1a";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -845,50 +1036,20 @@ function createDotTraceBoard(text, options) {
     ctx.fillText(text, W / 2, H / 2);
     ctx.restore();
 
-    // connected lines
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = Math.max(6, box.size * 0.045);
-    ctx.strokeStyle = opts.color || "#ff8a3d";
-    for (let i = 1; i < progress; i++) {
-      if (flat[i].first) continue;
-      const a = px(flat[i - 1]);
-      const b = px(flat[i]);
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(b.x, b.y);
-      ctx.stroke();
-    }
+    tracedLine(progress, grow);
 
-    const pulse = 0.5 + 0.5 * Math.sin(t / 260);
-    for (let i = 0; i < flat.length; i++) {
+    const pulse = 0.5 + 0.5 * Math.sin(t / 220);
+    for (let i = progress; i < flat.length; i++) {
       const p = px(flat[i]);
-      const r = Math.max(5, box.size * 0.022);
-      if (i < progress) {
-        ctx.fillStyle = "#45c07a";
-        ctx.globalAlpha = 1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (i === progress) {
-        ctx.globalAlpha = 0.35 + 0.65 * pulse;
-        ctx.fillStyle = "#ff3d7a";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r * (1.5 + 0.7 * pulse), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r * 0.55, 0, Math.PI * 2);
-        ctx.fill();
+      if (i === progress) {
+        ctx.save();
+        ctx.shadowColor = "rgba(255,40,60,0.8)";
+        ctx.shadowBlur = 18;
+        arrow(p, flat[i].angle, 1.15 + 0.22 * pulse, "#ff2233", 0.75 + 0.25 * pulse);
+        ctx.restore();
       } else {
-        ctx.globalAlpha = 0.22;
-        ctx.fillStyle = "#7a6752";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r * 0.85, 0, Math.PI * 2);
-        ctx.fill();
+        arrow(p, flat[i].angle, 0.82, "#9aa3ad", 0.28);
       }
-      ctx.globalAlpha = 1;
     }
     raf = window.requestAnimationFrame(draw);
   }
@@ -900,9 +1061,10 @@ function createDotTraceBoard(text, options) {
     const x = (e.clientX - rect.left) * ratio;
     const y = (e.clientY - rect.top) * ratio;
     const p = px(flat[progress]);
-    const hit = Math.max(28 * ratio, box.size * 0.09);
+    const hit = Math.max(30 * ratio, box.size * 0.1);
     if (Math.hypot(x - p.x, y - p.y) <= hit) {
       progress++;
+      grow = 0;
       playPopSound();
       if (progress >= flat.length) {
         if (opts.onComplete) opts.onComplete();
@@ -923,7 +1085,13 @@ function createDotTraceBoard(text, options) {
   return {
     element: wrap,
     total: flat.length,
-    reset() { progress = 0; },
+    reset() { progress = 0; grow = 1; },
+    progressCount() { return progress; },
+    currentArrow() {
+      if (progress >= flat.length) return null;
+      const p = px(flat[progress]);
+      return { x: p.x / ratio, y: p.y / ratio };
+    },
     isComplete() { return flat.length > 0 && progress >= flat.length; },
     stop() { if (raf) window.cancelAnimationFrame(raf); },
   };
@@ -943,7 +1111,7 @@ function buildTraceScreen(content, config) {
 
   const styleRow = el("div", "modes");
   [
-    { id: "dots", label: "🔵 Dot by Dot" },
+    { id: "dots", label: "➡️ Arrow Writing" },
     { id: "draw", label: "✏️ Free Draw" },
   ].forEach((s) => {
     const b = el("button", "btn small" + (state.traceStyle === s.id ? "" : " ghost"), s.label);
@@ -1014,21 +1182,21 @@ function buildTraceScreen(content, config) {
 /** Connect-the-dots writing panel: tap each blinking dot to build the shape. */
 function buildDotTracePanel(panel, content, config, item, guideText) {
   const state = appState.game;
-  panel.appendChild(el("div", "prompt", "🔵 Tap the blinking dot to build <b>" + esc(guideText) + "</b>"));
+  panel.appendChild(el("div", "prompt", "➡️ Tap the red arrow to write <b>" + esc(guideText) + "</b>"));
 
   const box = feedbackBox();
   const counter = el("div", "dot-counter", "");
   let board = null;
 
   const setCount = (done, total) => {
-    counter.textContent = "Dots: " + done + " / " + total;
+    counter.textContent = "Arrows: " + done + " / " + total;
   };
 
   const makeBoard = () => {
     if (board) board.stop();
     board = createDotTraceBoard(guideText, {
       onStep: (done, total) => setCount(done, total),
-      onMiss: () => showFeedback(box, "Tap the blinking dot! 🔵", true),
+      onMiss: () => showFeedback(box, "Tap the blinking red arrow! ➡️", true),
       onComplete: () => {
         setCount(board.total, board.total);
         celebrateCorrect(box, praise());
