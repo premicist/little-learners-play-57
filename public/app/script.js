@@ -1086,6 +1086,12 @@ function createDotTraceBoard(text, options) {
     element: wrap,
     total: flat.length,
     reset() { progress = 0; grow = 1; },
+    progressCount() { return progress; },
+    currentArrow() {
+      if (progress >= flat.length) return null;
+      const p = px(flat[progress]);
+      return { x: p.x / ratio, y: p.y / ratio };
+    },
     isComplete() { return flat.length > 0 && progress >= flat.length; },
     stop() { if (raf) window.cancelAnimationFrame(raf); },
   };
