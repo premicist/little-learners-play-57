@@ -1105,7 +1105,7 @@ function buildTraceScreen(content, config) {
 
   const styleRow = el("div", "modes");
   [
-    { id: "dots", label: "🔵 Dot by Dot" },
+    { id: "dots", label: "➡️ Arrow Writing" },
     { id: "draw", label: "✏️ Free Draw" },
   ].forEach((s) => {
     const b = el("button", "btn small" + (state.traceStyle === s.id ? "" : " ghost"), s.label);
@@ -1176,21 +1176,21 @@ function buildTraceScreen(content, config) {
 /** Connect-the-dots writing panel: tap each blinking dot to build the shape. */
 function buildDotTracePanel(panel, content, config, item, guideText) {
   const state = appState.game;
-  panel.appendChild(el("div", "prompt", "🔵 Tap the blinking dot to build <b>" + esc(guideText) + "</b>"));
+  panel.appendChild(el("div", "prompt", "➡️ Tap the red arrow to write <b>" + esc(guideText) + "</b>"));
 
   const box = feedbackBox();
   const counter = el("div", "dot-counter", "");
   let board = null;
 
   const setCount = (done, total) => {
-    counter.textContent = "Dots: " + done + " / " + total;
+    counter.textContent = "Arrows: " + done + " / " + total;
   };
 
   const makeBoard = () => {
     if (board) board.stop();
     board = createDotTraceBoard(guideText, {
       onStep: (done, total) => setCount(done, total),
-      onMiss: () => showFeedback(box, "Tap the blinking dot! 🔵", true),
+      onMiss: () => showFeedback(box, "Tap the blinking red arrow! ➡️", true),
       onComplete: () => {
         setCount(board.total, board.total);
         celebrateCorrect(box, praise());
