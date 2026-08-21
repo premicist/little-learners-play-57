@@ -905,7 +905,7 @@ function resampleStroke(pts, spacing) {
     acc.push(total);
   }
   if (total < 0.02) return [pts[0], pts[pts.length - 1]];
-  const n = Math.max(2, Math.min(14, Math.round(total / spacing)));
+  const n = Math.max(1, Math.min(5, Math.round(total / spacing)));
   const out = [];
   let idx = 1;
   for (let k = 0; k <= n; k++) {
@@ -927,7 +927,7 @@ function glyphStrokePaths(text) {
   let raw = HAND_STROKES[text] || HAND_STROKES[String(text).toUpperCase()];
   if (!raw) raw = skeletonStrokes(text);
   const paths = raw
-    .map((s) => resampleStroke(s.map((p) => [p[0], p[1]]), 0.115))
+    .map((s) => resampleStroke(s.map((p) => [p[0], p[1]]), 0.3))
     .filter((s) => s.length >= 2);
   strokePathCache[text] = paths;
   return paths;
@@ -1097,7 +1097,54 @@ function createDotTraceBoard(text, options) {
   };
 }
 
+/** Toggle fullscreen for the whole app (works inside the preview iframe). */
+function toggleFullscreen() {
+  const doc = document;
+  const target = doc.documentElement;
+  const isFull = doc.fullscreenElement || doc.webkitFullscreenElement;
+  try {
+    if (isFull) {
+      (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+    } else {
+      (target.requestFullscreen || target.webkitRequestFullscreen).call(target);
+    }
+  } catch (err) {
+    /* ignore */
+  }
+}
+
+function fullscreenButton() {
+  const b = el("button", "btn small ghost", "⛶ Full Screen");
+  b.setAttribute("aria-label", "Toggle full screen");
+  b.addEventListener("click", () => {
+    toggleFullscreen();
+    setTimeout(() => {
+      const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+      b.textContent = isFull ? "⛶ Exit Full Screen" : "⛶ Full Screen";
+    }, 250);
+  });
+  return b;
+}
+
+/** Grid of every letter/number so a child can jump straight to one. */
+function tracePicker(config, currentIndex) {
+  const wrap = el("div", "trace-picker");
+  config.items.forEach((it, i) => {
+    const label = config.guideOf(it);
+    const b = el("button", "pick" + (i === currentIndex ? " on" : ""), esc(label));
+    b.setAttribute("aria-label", "Practice " + label);
+    b.setAttribute("aria-pressed", i === currentIndex ? "true" : "false");
+    b.addEventListener("click", () => {
+      appState.game.traceIndex = i;
+      config.rerender();
+    });
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+
 /** Standard trace screen used by letters, numbers and words. */
+
 
 function buildTraceScreen(content, config) {
   // config: { items, guideOf, speakOf, indexKey }
