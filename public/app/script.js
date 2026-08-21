@@ -1097,7 +1097,54 @@ function createDotTraceBoard(text, options) {
   };
 }
 
+/** Toggle fullscreen for the whole app (works inside the preview iframe). */
+function toggleFullscreen() {
+  const doc = document;
+  const target = doc.documentElement;
+  const isFull = doc.fullscreenElement || doc.webkitFullscreenElement;
+  try {
+    if (isFull) {
+      (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+    } else {
+      (target.requestFullscreen || target.webkitRequestFullscreen).call(target);
+    }
+  } catch (err) {
+    /* ignore */
+  }
+}
+
+function fullscreenButton() {
+  const b = el("button", "btn small ghost", "⛶ Full Screen");
+  b.setAttribute("aria-label", "Toggle full screen");
+  b.addEventListener("click", () => {
+    toggleFullscreen();
+    setTimeout(() => {
+      const isFull = document.fullscreenElement || document.webkitFullscreenElement;
+      b.textContent = isFull ? "⛶ Exit Full Screen" : "⛶ Full Screen";
+    }, 250);
+  });
+  return b;
+}
+
+/** Grid of every letter/number so a child can jump straight to one. */
+function tracePicker(config, currentIndex) {
+  const wrap = el("div", "trace-picker");
+  config.items.forEach((it, i) => {
+    const label = config.guideOf(it);
+    const b = el("button", "pick" + (i === currentIndex ? " on" : ""), esc(label));
+    b.setAttribute("aria-label", "Practice " + label);
+    b.setAttribute("aria-pressed", i === currentIndex ? "true" : "false");
+    b.addEventListener("click", () => {
+      appState.game.traceIndex = i;
+      config.rerender();
+    });
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+
 /** Standard trace screen used by letters, numbers and words. */
+
 
 function buildTraceScreen(content, config) {
   // config: { items, guideOf, speakOf, indexKey }
