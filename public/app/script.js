@@ -905,7 +905,7 @@ function resampleStroke(pts, spacing) {
     acc.push(total);
   }
   if (total < 0.02) return [pts[0], pts[pts.length - 1]];
-  const n = Math.max(2, Math.min(14, Math.round(total / spacing)));
+  const n = Math.max(1, Math.min(5, Math.round(total / spacing)));
   const out = [];
   let idx = 1;
   for (let k = 0; k <= n; k++) {
@@ -927,7 +927,7 @@ function glyphStrokePaths(text) {
   let raw = HAND_STROKES[text] || HAND_STROKES[String(text).toUpperCase()];
   if (!raw) raw = skeletonStrokes(text);
   const paths = raw
-    .map((s) => resampleStroke(s.map((p) => [p[0], p[1]]), 0.115))
+    .map((s) => resampleStroke(s.map((p) => [p[0], p[1]]), 0.3))
     .filter((s) => s.length >= 2);
   strokePathCache[text] = paths;
   return paths;
