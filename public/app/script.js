@@ -130,6 +130,17 @@ const numberItems = [
   { number: 10, wordEnglish: "Ten", wordNepali: "दश", visual: "🌟" },
 ];
 
+const shapeItems = [
+  { id: "circle", name: "Circle", visual: "🔴", color: "#ef5350" },
+  { id: "square", name: "Square", visual: "⬛", color: "#424242" },
+  { id: "triangle", name: "Triangle", visual: "🔺", color: "#7e57c2" },
+  { id: "rectangle", name: "Rectangle", visual: "▭", color: "#42a5f5" },
+  { id: "star", name: "Star", visual: "⭐", color: "#ffca28" },
+  { id: "heart", name: "Heart", visual: "❤️", color: "#e91e63" },
+  { id: "diamond", name: "Diamond", visual: "💠", color: "#00bcd4" },
+  { id: "oval", name: "Oval", visual: "椭", color: "#ff9800" },
+];
+
 const englishWords = [
   { word: "cat", letters: ["c", "a", "t"], visual: "🐱" },
   { word: "bat", letters: ["b", "a", "t"], visual: "🦇" },
@@ -172,6 +183,7 @@ const MODULES = [
   { id: "match", label: "Match the Following", sub: "Tap two friends", emoji: "🧩", color: "#f3ecff" },
   { id: "ewords", label: "English Three-Letter Words", sub: "cat • dog • sun", emoji: "📖", color: "#fff6d6" },
   { id: "nwords", label: "Beginner Nepali Words", sub: "घर • कलम • पानी", emoji: "📚", color: "#e6fbfa" },
+  { id: "shapes", label: "Shapes", sub: "Fun shapes to learn", emoji: "🔺", color: "#fff0f5" },
   { id: "settings", label: "Parent Settings", sub: "Hold to open", emoji: "⚙️", color: "#efefef" },
 ];
 
@@ -1782,6 +1794,67 @@ function renderNumberGame() {
 }
 
 /* ---------------------------------------------------------
+   12.1 GAME 5.5 — SHAPES
+   --------------------------------------------------------- */
+
+function renderShapesGame() {
+  const rerender = renderShapesGame;
+  const state = appState.game;
+  if (!state.round) state.round = 0;
+
+  const content = renderShell("Shapes", {
+    onRestart: () => { appState.game = {}; rerender(); },
+  });
+
+  const target = randomOf(shapeItems);
+  const distractorCount = Math.max(5, choiceCount() + 3);
+  const options = shuffle([target, ...pickDistractors(shapeItems, target, distractorCount, (o) => o.id)]);
+
+  const panel = el("div", "panel");
+  panel.appendChild(el("div", "prompt", "Find the <b>" + esc(target.name) + "</b>!"));
+
+  const split = el("div", "split");
+  const targetBox = el("div", "target-box",
+    '<div class="big" aria-hidden="true" style="font-size:4rem">' + target.visual + "</div>" +
+    '<div class="label">' + esc(target.name) + "</div>");
+  const listen = speakerButton("Say it", () => speakEnglish(target.name));
+  targetBox.appendChild(listen);
+  split.appendChild(targetBox);
+
+  const box = feedbackBox();
+  let solved = false;
+
+  const grid = buildChoiceGrid(
+    options,
+    (o) => '<span aria-hidden="true" style="font-size:3rem">' + o.visual + "</span>",
+    (o, btn) => {
+      if (solved) return;
+      if (o.id === target.id) {
+        solved = true;
+        btn.classList.add("correct");
+        celebrateCorrect(box, praise());
+        speakEnglish(target.name);
+        state.round += 1;
+        setTimeout(rerender, 1500);
+      } else {
+        btn.classList.add("wrong");
+        setTimeout(() => btn.classList.remove("wrong"), 500);
+        gentleWrong(box);
+      }
+    },
+    (o) => o.name
+  );
+
+  split.appendChild(grid);
+  panel.appendChild(split);
+  panel.appendChild(box);
+  panel.appendChild(el("p", "lock-note", "Round " + (state.round + 1)));
+  content.appendChild(panel);
+
+  speakEnglish("Find the " + target.name);
+}
+
+/* ---------------------------------------------------------
    12. GAME 5 — MATCH THE FOLLOWING
    --------------------------------------------------------- */
 
@@ -2325,6 +2398,7 @@ const SCREENS = {
   match: renderMatchingGame,
   ewords: renderEnglishWordGame,
   nwords: renderNepaliWordGame,
+  shapes: renderShapesGame,
   settings: renderSettings,
 };
 
