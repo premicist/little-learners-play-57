@@ -234,6 +234,14 @@ function loadProgress() {
     if (!Array.isArray(appState.settings.enabledModules)) {
       appState.settings.enabledModules = DEFAULT_SETTINGS.enabledModules.slice();
     }
+    // new games added in later versions should show up automatically
+    const known = Array.isArray(data.settings && data.settings.knownModules) ? data.settings.knownModules : [];
+    MODULES.forEach((m) => {
+      if (!known.includes(m.id) && !appState.settings.enabledModules.includes(m.id)) {
+        appState.settings.enabledModules.push(m.id);
+      }
+    });
+    appState.settings.knownModules = MODULES.map((m) => m.id);
   } catch (e) {
     /* corrupt data — fall back to defaults */
   }
