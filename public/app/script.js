@@ -1178,7 +1178,9 @@ function buildTraceScreen(content, config) {
     b.addEventListener("click", () => { state.traceStyle = s.id; config.rerender(); });
     styleRow.appendChild(b);
   });
+  styleRow.appendChild(fullscreenButton());
   panel.appendChild(styleRow);
+  panel.appendChild(tracePicker(config, state.traceIndex % config.items.length));
 
   if (state.traceStyle === "dots") {
     buildDotTracePanel(panel, content, config, item, guideText);
