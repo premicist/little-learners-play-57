@@ -183,6 +183,7 @@ const MODULES = [
   { id: "match", label: "Match the Following", sub: "Tap two friends", emoji: "🧩", color: "#f3ecff" },
   { id: "ewords", label: "English Three-Letter Words", sub: "cat • dog • sun", emoji: "📖", color: "#fff6d6" },
   { id: "nwords", label: "Beginner Nepali Words", sub: "घर • कलम • पानी", emoji: "📚", color: "#e6fbfa" },
+  { id: "solar", label: "Solar System", sub: "Sun, Moon & planets", emoji: "🪐", color: "#e9e6ff" },
   { id: "shapes", label: "Shapes", sub: "Fun shapes to learn", emoji: "🔺", color: "#fff0f5" },
   { id: "settings", label: "Parent Settings", sub: "Hold to open", emoji: "⚙️", color: "#efefef" },
 ];
@@ -233,6 +234,14 @@ function loadProgress() {
     if (!Array.isArray(appState.settings.enabledModules)) {
       appState.settings.enabledModules = DEFAULT_SETTINGS.enabledModules.slice();
     }
+    // new games added in later versions should show up automatically
+    const known = Array.isArray(data.settings && data.settings.knownModules) ? data.settings.knownModules : [];
+    MODULES.forEach((m) => {
+      if (!known.includes(m.id) && !appState.settings.enabledModules.includes(m.id)) {
+        appState.settings.enabledModules.push(m.id);
+      }
+    });
+    appState.settings.knownModules = MODULES.map((m) => m.id);
   } catch (e) {
     /* corrupt data — fall back to defaults */
   }
@@ -1178,7 +1187,9 @@ function buildTraceScreen(content, config) {
     b.addEventListener("click", () => { state.traceStyle = s.id; config.rerender(); });
     styleRow.appendChild(b);
   });
+  styleRow.appendChild(fullscreenButton());
   panel.appendChild(styleRow);
+  panel.appendChild(tracePicker(config, state.traceIndex % config.items.length));
 
   if (state.traceStyle === "dots") {
     buildDotTracePanel(panel, content, config, item, guideText);
@@ -2385,6 +2396,174 @@ function renderSettings() {
   content.appendChild(panel);
 }
 
+
+/* ---------------------------------------------------------
+   GAME — SOLAR SYSTEM
+   --------------------------------------------------------- */
+
+const solarItems = [
+  { id: "sun", name: "Sun", nepali: "सूर्य", visual: "☀️", fact: "The Sun is a big hot star.", color: "#ffd24a" },
+  { id: "mercury", name: "Mercury", nepali: "बुध", visual: "🌑", fact: "Mercury is closest to the Sun.", color: "#c9b8a8" },
+  { id: "venus", name: "Venus", nepali: "शुक्र", visual: "🟠", fact: "Venus is the hottest planet.", color: "#ffb26b" },
+  { id: "earth", name: "Earth", nepali: "पृथ्वी", visual: "🌍", fact: "Earth is our home.", color: "#5aa9f0" },
+  { id: "moon", name: "Moon", nepali: "चन्द्रमा", visual: "🌕", fact: "The Moon goes around the Earth.", color: "#e6e6e6" },
+  { id: "mars", name: "Mars", nepali: "मंगल", visual: "🔴", fact: "Mars is the red planet.", color: "#ef6a5a" },
+  { id: "jupiter", name: "Jupiter", nepali: "बृहस्पति", visual: "🟤", fact: "Jupiter is the biggest planet.", color: "#d8a26b" },
+  { id: "saturn", name: "Saturn", nepali: "शनि", visual: "🪐", fact: "Saturn has beautiful rings.", color: "#f0d79a" },
+  { id: "uranus", name: "Uranus", nepali: "अरुण", visual: "🔵", fact: "Uranus rolls on its side.", color: "#8fd8e8" },
+  { id: "neptune", name: "Neptune", nepali: "वरुण", visual: "🔷", fact: "Neptune is very windy and blue.", color: "#5b7de0" },
+  { id: "star", name: "Star", nepali: "तारा", visual: "⭐", fact: "Stars twinkle in the night sky.", color: "#ffe98a" },
+  { id: "rocket", name: "Rocket", nepali: "रकेट", visual: "🚀", fact: "A rocket flies into space.", color: "#c9d6ff" },
+];
+
+const SOLAR_ORDER = ["sun", "mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"];
+
+function renderSolarGame() {
+  const rerender = renderSolarGame;
+  const state = appState.game;
+  if (!state.mode) state.mode = "learn";
+  if (typeof state.solarIndex !== "number") state.solarIndex = 0;
+
+  const content = renderShell("Solar System", {
+    onRestart: () => { appState.game = {}; rerender(); },
+  });
+
+  const panel = el("div", "panel");
+  panel.appendChild(modesBar(
+    [
+      { id: "learn", label: "👀 Look & Learn" },
+      { id: "find", label: "🔎 Find It" },
+      { id: "order", label: "🚀 Order from Sun" },
+    ],
+    state.mode,
+    (id) => { state.mode = id; state.orderPicked = null; rerender(); }
+  ));
+  content.appendChild(panel);
+
+  if (state.mode === "learn") return solarLearn(panel, state, rerender);
+  if (state.mode === "find") return solarFind(panel, state, rerender);
+  return solarOrder(panel, state, rerender);
+}
+
+function solarLearn(panel, state, rerender) {
+  const item = solarItems[state.solarIndex % solarItems.length];
+  panel.appendChild(el("div", "prompt", "🪐 This is <b>" + esc(item.name) + "</b> · " + esc(item.nepali)));
+
+  const boxEl = el("div", "target-box");
+  boxEl.style.borderColor = item.color;
+  boxEl.appendChild(el("div", "big", '<span aria-hidden="true">' + item.visual + "</span>"));
+  boxEl.appendChild(el("div", "label", esc(item.name) + " · " + esc(item.nepali)));
+  boxEl.appendChild(el("div", "sub", esc(item.fact)));
+  panel.appendChild(boxEl);
+
+  const row = el("div", "row");
+  row.appendChild(speakerButton("Say it", () => speakBoth(item.name + ". " + item.fact, item.nepali)));
+
+  const prev = el("button", "btn ghost", "⬅️ Back");
+  prev.setAttribute("aria-label", "Previous");
+  prev.addEventListener("click", () => {
+    state.solarIndex = (state.solarIndex - 1 + solarItems.length) % solarItems.length;
+    rerender();
+  });
+  const next = el("button", "btn", "➡️ Next");
+  next.setAttribute("aria-label", "Next");
+  next.addEventListener("click", () => {
+    state.solarIndex = (state.solarIndex + 1) % solarItems.length;
+    rerender();
+  });
+  row.appendChild(prev);
+  row.appendChild(next);
+  panel.appendChild(row);
+
+  const picker = el("div", "trace-picker");
+  solarItems.forEach((s, i) => {
+    const b = el("button", "pick" + (i === state.solarIndex % solarItems.length ? " on" : ""), s.visual);
+    b.setAttribute("aria-label", s.name);
+    b.addEventListener("click", () => { state.solarIndex = i; rerender(); });
+    picker.appendChild(b);
+  });
+  panel.appendChild(picker);
+  panel.appendChild(progressBar((state.solarIndex % solarItems.length) + 1, solarItems.length));
+
+  speakBoth(item.name + ". " + item.fact, item.nepali);
+}
+
+function solarFind(panel, state, rerender) {
+  const target = randomOf(solarItems);
+  const options = shuffle([target, ...pickDistractors(solarItems, target, Math.max(3, choiceCount()), (o) => o.id)]);
+
+  panel.appendChild(el("div", "prompt", "Find the <b>" + esc(target.name) + "</b>!"));
+  const box = feedbackBox();
+  let solved = false;
+
+  const grid = buildChoiceGrid(
+    options,
+    (o) => '<span aria-hidden="true" style="font-size:3rem">' + o.visual + "</span>",
+    (o, btn) => {
+      if (solved) return;
+      if (o.id === target.id) {
+        solved = true;
+        btn.classList.add("correct");
+        celebrateCorrect(box, praise());
+        speakEnglish(target.name + ". " + target.fact);
+        setTimeout(rerender, 1700);
+      } else {
+        btn.classList.add("wrong");
+        setTimeout(() => btn.classList.remove("wrong"), 500);
+        gentleWrong(box);
+      }
+    },
+    (o) => o.name
+  );
+  panel.appendChild(grid);
+  panel.appendChild(box);
+  panel.appendChild(el("p", "lock-note", "Tap the right one in space! 🌌"));
+  speakEnglish("Find the " + target.name);
+}
+
+function solarOrder(panel, state, rerender) {
+  const order = SOLAR_ORDER.map((id) => solarItems.find((s) => s.id === id));
+  if (!state.orderDone) state.orderDone = 0;
+
+  panel.appendChild(el("div", "prompt", "🚀 Tap them in order, starting from the Sun!"));
+
+  const slots = el("div", "slots");
+  order.forEach((o, i) => {
+    const sl = el("div", "slot", i < state.orderDone ? '<span aria-hidden="true">' + o.visual + "</span>" : String(i + 1));
+    slots.appendChild(sl);
+  });
+  panel.appendChild(slots);
+
+  const box = feedbackBox();
+  const remaining = shuffle(order.slice(state.orderDone));
+  const tiles = el("div", "tiles");
+  remaining.forEach((o) => {
+    const b = el("button", "tile-letter", '<span aria-hidden="true">' + o.visual + "</span>");
+    b.setAttribute("aria-label", o.name);
+    b.addEventListener("click", () => {
+      if (o.id === order[state.orderDone].id) {
+        state.orderDone += 1;
+        speakEnglish(o.name);
+        if (state.orderDone >= order.length) {
+          celebrateCorrect(box, "You know the solar system! 🌟");
+          state.orderDone = 0;
+          setTimeout(rerender, 2200);
+          return;
+        }
+        rerender();
+      } else {
+        b.classList.add("wrong");
+        setTimeout(() => b.classList.remove("wrong"), 500);
+        gentleWrong(box, "Try the next one after " + (state.orderDone ? order[state.orderDone - 1].name : "the Sun") + "!");
+      }
+    });
+    tiles.appendChild(b);
+  });
+  panel.appendChild(tiles);
+  panel.appendChild(box);
+  panel.appendChild(progressBar(state.orderDone, order.length));
+}
+
 /* ---------------------------------------------------------
    15. ROUTER
    --------------------------------------------------------- */
@@ -2399,6 +2578,7 @@ const SCREENS = {
   ewords: renderEnglishWordGame,
   nwords: renderNepaliWordGame,
   shapes: renderShapesGame,
+  solar: renderSolarGame,
   settings: renderSettings,
 };
 

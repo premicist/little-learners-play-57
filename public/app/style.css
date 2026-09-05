@@ -530,3 +530,37 @@ button,
   color: var(--muted);
   margin-top: 8px;
 }
+
+/* ---------- Trace / item picker ---------- */
+.trace-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 10px 0 4px;
+  max-height: 168px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #fffaf3;
+  border: 3px solid #ffe0bd;
+  border-radius: 18px;
+}
+.trace-picker .pick {
+  min-width: 52px;
+  min-height: 52px;
+  border-radius: 14px;
+  border: 3px solid #ffe0bd;
+  background: #fff;
+  font-family: var(--font);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 4px 10px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+.trace-picker .pick.on {
+  background: var(--yellow);
+  border-color: var(--primary);
+}
+.tile-letter.wrong { border-color: #ffb4b4; background: #fff0f0; animation: shake 0.4s ease; }

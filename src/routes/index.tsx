@@ -32,7 +32,8 @@ function Index() {
         src="/app/index.html"
         title="Little Learners toddler learning games"
         style={{ width: "100%", height: "100%", border: "none", display: "block" }}
-        allow="microphone"
+        allow="microphone; fullscreen"
+        allowFullScreen
       />
     </main>
   );
